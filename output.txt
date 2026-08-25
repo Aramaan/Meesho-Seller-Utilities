@@ -1,0 +1,47 @@
+Customer Address 
+Sojalin Mohapatra
+kherasa omfed, kherasa, cuttack 
+kherasa, omfed 
+kherasa omfed 
+Cuttack, Odisha, 754018
+If undelivered, return to: 
+Meena's Creations Store
+Charbatia, Choudwar 
+- 
+Charibatia, Odisha, 754028
+Prepaid: Do not collect cash
+Delhivery 
+Pickup  
+Destination Code
+Adaspur_Uradha_DPP 
+ 
+(Orissa) 
+Return Code
+754028,4104710
+1490840278713590
+Product Details
+SKU Size Qty Color Order No.
+Greenred 0 Un Stitched 1 NA 323539655056164032_1
+BILL OF SUPPLY/COMMERCIAL INVOICE Original For Recipient
+BILL TO / SHIP TO 
+Sojalin Mohapatra - kherasa omfed, kherasa, cuttack , 
+kherasa, omfed, kherasa omfed, Cuttack, Odisha, 
+754018, Place of Supply: Odisha
+Sold by : Amrut Kumar Meher 
+Meena's Creations Store, Charbatia   Choudwar, Charibatia, Odisha, 754028 
+Enrolment No. - 212600025303ESY
+Order No.
+323539655056164032
+Invoice No.
+cr1jz27382
+Order Date
+25.08.2026
+Invoice Date
+25.08.2026
+Description Qty Gross Amount Discount Total
+Sambalpuri handloom cotton dress material  - Un 
+Stitched 1 Rs.1496.00 Rs.45.00 Rs.1451.00
+Other Charges NA Rs.0.00 Rs.0 Rs.0.00
+Total Rs.1451.00
+This is a computer generated invoice and does not require signature. Other charges are charges that are applicable to your order and include charges for 
+logistics fee (where applicable). Includes discounts for your city and/or for online payments (as applicable)
