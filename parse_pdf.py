@@ -27,6 +27,9 @@ def first_match(pattern: str, text: str, flags: int = 0) -> str | None:
 # Folder containing all PDF order files.
 PDF_DIR = Path("order_labels")
 
+OUTPUT_DIR = Path("Tabular_data")
+OUTPUT_DIR.mkdir(exist_ok=True)
+
 
 def parse_pdf(pdf_path: Path) -> dict:
     """Extract order, customer, product, and invoice data from one PDF."""
@@ -137,8 +140,8 @@ print(df)
 
 
 # Export the dataframe to CSV and JSON files.
-df.write_csv("invoice_data.csv")
-df.write_json("invoice_data.json")
+df.write_csv(OUTPUT_DIR / "invoice_data.csv")
+df.write_json(OUTPUT_DIR / "invoice_data.json")
 
 
 # Create a DOCX document containing the dataframe as a table.
@@ -161,6 +164,6 @@ for row in df.iter_rows(named=True):
 
 
 # Save the completed DOCX file.
-document.save("invoice_data.docx")
+document.save(OUTPUT_DIR / "invoice_data.docx")
 
 print(f"Processed {df.height} PDF files.")
