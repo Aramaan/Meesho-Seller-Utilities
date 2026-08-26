@@ -13,11 +13,14 @@ This project extracts order and invoice details from Meesho PDF order labels, ex
 ├── Tabular_data/
 │   ├── invoice_data.csv
 │   ├── invoice_data.json
+│   ├── invoice_data.arrow
+│   ├── invoice_data.parquet
 │   └── invoice_data.docx
 └── utilities/
     ├── address_to_geocode.py
     ├── geocode_to_map.py
-    └── pincode_to_geocode.py
+    ├── pincode_to_geocode.py
+    └── utils.py
 ```
 
 ## Requirements
@@ -46,7 +49,19 @@ Generated files are saved in `Tabular_data/`:
 
 - `invoice_data.csv`
 - `invoice_data.json`
+- `invoice_data.arrow` (Apache Arrow IPC format)
+- `invoice_data.parquet` (Parquet columnar format)
 - `invoice_data.docx`
+
+The generated tabular files are ignored by Git because they are derived from
+the PDF labels. The DOCX export is created by `export_to_docx` from
+`utilities/utils.py`.
+
+Utility functions can be imported with:
+
+```python
+import utilities.utils as utils
+```
 
 ## Generate the Map
 
