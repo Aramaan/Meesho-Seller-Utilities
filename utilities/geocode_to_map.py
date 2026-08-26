@@ -1,21 +1,30 @@
 import folium
+import polars as pl
 
-locations = [
-    {"name": "Cuttack", "lat": 20.4625, "lon": 85.8830},
-    {"name": "Khurda", "lat": 20.1820, "lon": 85.6160},
-]
+locations = pl.DataFrame(
+    {
+        "name": ["Cuttack", "Khurda"],
+        "lat": [20.4625, 20.1820],
+        "lon": [85.8830, 85.6160],
+    }
+)
 
-map_view = folium.Map(location=[20.5, 85.8], zoom_start=8)
 
-for location in locations:
-    folium.Marker(
-        [location["lat"], location["lon"]],
-        popup=location["name"]
-    ).add_to(map_view)
+def create_map(locations: pl.DataFrame):
+    map_view = folium.Map(location=[20.5, 85.8], zoom_start=8)
 
-map_view.fit_bounds([
-    [location["lat"], location["lon"]]
-    for location in locations
-])
+    for location in locations.iter_rows(named=True):
+        folium.Marker(
+            [location["lat"], location["lon"]],
+            popup=location["name"]
+        ).add_to(map_view)
 
-map_view.save("map.html")
+    map_view.fit_bounds([
+        [row["lat"], row["lon"]]
+        for row in locations.select(["lat", "lon"]).iter_rows(named=True)
+    ])
+
+    map_view.save("map.html")
+
+
+create_map(locations)
