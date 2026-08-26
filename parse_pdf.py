@@ -2,28 +2,8 @@ import re
 from pathlib import Path
 
 import polars as pl
-from docx import Document
 from pypdf import PdfReader
-
-
-# Extra white spaces are removed, and leading/trailing whitespace is stripped.
-def clean(value: str | None) -> str | None:
-    if not value:
-        return None
-    return re.sub(r"\s+", " ", value).strip()
-
-
-# Convert a string representing a monetary value to a float, removing commas.
-def money(value: str) -> float:
-    return float(value.replace(",", ""))
-
-
-# Find the first match of a regex pattern in a string and return
-#  the first capture group, cleaned.
-def first_match(pattern: str, text: str, flags: int = 0) -> str | None:
-    match = re.search(pattern, text, flags)
-    return clean(match.group(1)) if match else None
-
+import utilities.utils as utils
 
 # Folder containing the PDF files to be processed,
 #  and the output folder for the extracted data.
@@ -50,9 +30,9 @@ def parse_pdf(pdf_path: Path) -> tuple:
     customer_block = customer_match.group(1).strip() if customer_match else ""
 
     customer_lines = [
-        clean(line)
+        utils.clean(line)
         for line in customer_block.splitlines()
-        if clean(line)
+        if utils.clean(line)
     ]
     # Find the product section and its details.
     product_match = re.search(
@@ -87,25 +67,25 @@ def parse_pdf(pdf_path: Path) -> tuple:
     product = product_match.groupdict()
     invoice = invoice_match.groupdict()
 
-    # Return a tuple containing the extracted data, cleaned and formatted.
+    # Return a tuple containing the extracted data, utils.cleaned and formatted.
     return (
         pdf_path.name,                                                                                 # source_file
+        product["item_order_number"],    
+        product["sku"], 
         customer_lines[0] if customer_lines else None,                                                 # customer_name
-        clean(" ".join(customer_lines[1:])),                                                           # customer_address
-        first_match(r"Customer Address.*?\b(\d{6})\b", text, re.IGNORECASE | re.DOTALL),               # customer_pincode
-        first_match(r"BILL OF SUPPLY.*?Order No\.\s+([A-Za-z0-9]+)", text, re.IGNORECASE | re.DOTALL), # order_number
-        first_match(r"Invoice No\.\s+([A-Za-z0-9]+)", text, re.IGNORECASE),                            # invoice_number
-        first_match(r"Order Date\s+([0-9.]+)", text),                                                  # order_date
-        first_match(r"Invoice Date\s+([0-9.]+)", text),                                                # invoice_date
-        product["sku"],                                                                                # sku
+        utils.clean(" ".join(customer_lines[1:])),                                                           # customer_address
+        utils.first_match(r"Customer Address.*?\b(\d{6})\b", text, re.IGNORECASE | re.DOTALL),               # customer_pincode
+        utils.first_match(r"BILL OF SUPPLY.*?Order No\.\s+([A-Za-z0-9]+)", text, re.IGNORECASE | re.DOTALL), # order_number
+        utils.first_match(r"Invoice No\.\s+([A-Za-z0-9]+)", text, re.IGNORECASE),                            # invoice_number
+        utils.first_match(r"Order Date\s+([0-9.]+)", text),                                                  # order_date
+        utils.first_match(r"Invoice Date\s+([0-9.]+)", text),                                                # invoice_date                                                                               # sku
         product["size"],                                                                               # size
         int(product["quantity"]),                                                                      # quantity
-        product["color"],                                                                              # color
-        product["item_order_number"],                                                                  # item_order_number
-        clean(invoice["description"]),                                                                 # description
-        money(invoice["gross_amount"]),                                                                # gross_amount
-        money(invoice["discount"]),                                                                    # discount
-        money(invoice["total_amount"]),                                                                # total_amount
+        product["color"],                                                                              # color                                                              # item_order_number
+        utils.clean(invoice["description"]),                                                                 # description
+        utils.money(invoice["gross_amount"]),                                                                # gross_amount
+        utils.money(invoice["discount"]),                                                                    # discount
+        utils.money(invoice["total_amount"]),                                                                # total_amount
     )
 
 
@@ -120,9 +100,9 @@ for pdf_path in sorted(PDF_DIR.glob("*.pdf")):
 
 # Headers for the DataFrame columns, matching the order of the tuple returned by parse_pdf.
 headers = [
-    "source_file", "customer_name", "customer_address", "customer_pincode",
+    "source_file", "order_id", "Product", "customer_name", "customer_address", "customer_pincode",
     "order_number", "invoice_number", "order_date", "invoice_date",
-    "sku", "size", "quantity", "color", "order_id",
+     "size", "quantity", "color",
     "description", "gross_amount", "discount", "total_amount"
 ]
 
@@ -133,42 +113,23 @@ df = (
     else pl.DataFrame(schema=headers)
 )
 
-print(df.select(df.columns[:-4]))
-
 
 # Export the dataframe to CSV and JSON files and parquet and arrow formats
 #  in the output directory.
-df.write_csv(OUTPUT_DIR / "invoice_data.csv")
-df.write_json(OUTPUT_DIR / "invoice_data.json")
-df.write_ipc(OUTPUT_DIR / "invoice_data.arrow")
-df.write_parquet(OUTPUT_DIR / "invoice_data.parquet")
+def export_dataframe(df: pl.DataFrame, output_dir: Path) -> None:
+    """Export the dataframe to various formats in the specified output directory."""
+    df.write_csv(output_dir / "invoice_data.csv")
+    df.write_json(output_dir / "invoice_data.json")
+    df.write_ipc(output_dir / "invoice_data.arrow")
+    df.write_parquet(output_dir / "invoice_data.parquet")
+    utils.export_to_docx(df, output_dir / "invoice_data.docx")
 
+export_dataframe(df, OUTPUT_DIR)
 
-def export_to_docx(dataframe: pl.DataFrame, output_path: Path) -> None:
-    ''' Export the dataframe to a DOCX file with a table format. '''
-    document = Document()
-    document.add_heading("Invoice Data", level=1)
-
-    table = document.add_table(rows=1, cols=len(dataframe.columns))
-    table.style = "Table Grid"
-
-    # Add dataframe column names as the table header.
-    for index, column in enumerate(dataframe.columns):
-        table.rows[0].cells[index].text = column
-
-    # Add one DOCX table row for each PDF order.
-    for row in dataframe.iter_rows(named=True):
-        cells = table.add_row().cells
-
-        for index, column in enumerate(dataframe.columns):
-            cells[index].text = str(row[column] or "")
-
-
-    # Save the completed DOCX file.
-    document.save(output_path)
-
-
-export_to_docx(df, OUTPUT_DIR / "invoice_data.docx")
+print(df.select(df.columns[:-5]))
 
 print(f"Processed {df.height} PDF files.")
 
+"""
+
+"""
