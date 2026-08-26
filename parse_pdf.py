@@ -8,13 +8,12 @@ import utilities.utils as utils
 # Folder containing the PDF files to be processed,
 #  and the output folder for the extracted data.
 PDF_DIR = Path("order_labels")
-
 OUTPUT_DIR = Path("Tabular_data")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
 def parse_pdf(pdf_path: Path) -> tuple:
-    """Extract order, customer, product, and invoice data from one PDF."""
+    """Extract relevant information from a PDF file and return it as a tuple."""
 
     # Read and extract text from the PDF file.
     reader = PdfReader(pdf_path)
