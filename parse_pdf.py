@@ -31,7 +31,7 @@ OUTPUT_DIR = Path("Tabular_data")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
-def parse_pdf(pdf_path: Path) -> dict:
+def parse_pdf(pdf_path: Path) -> pl.DataFrame:
     """Extract order, customer, product, and invoice data from one PDF."""
 
     # Read and combine the text from all pages in the PDF.
@@ -90,7 +90,7 @@ def parse_pdf(pdf_path: Path) -> dict:
     invoice = invoice_match.groupdict()
 
     # Build one dictionary representing one PDF order.
-    return {
+    return pl.DataFrame([{
         "source_file": pdf_path.name,
         "customer_name": customer_lines[0] if customer_lines else None,
         "customer_address": clean(" ".join(customer_lines[1:])),
@@ -119,23 +119,24 @@ def parse_pdf(pdf_path: Path) -> dict:
         "gross_amount": money(invoice["gross_amount"]),
         "discount": money(invoice["discount"]),
         "total_amount": money(invoice["total_amount"]),
-    }
+    }])
 
 
-
-# Parse every PDF and store each order as a separate dictionary.
-records = []
+frames = []
 
 for pdf_path in sorted(PDF_DIR.glob("*.pdf")):
     try:
-        records.append(parse_pdf(pdf_path))
+        frames.append(parse_pdf(pdf_path))
         print(f"Parsed: {pdf_path.name}")
     except ValueError as error:
         print(f"Skipped: {error}")
 
+df = (
+    pl.concat(frames, how="vertical_relaxed")
+    if frames
+    else pl.DataFrame()
+)
 
-# Convert all parsed orders into a Polars dataframe.
-df = pl.DataFrame(records)
 print(df)
 
 
