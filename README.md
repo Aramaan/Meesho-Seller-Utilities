@@ -1,4 +1,4 @@
-# Meesho Order Data Processing
+# Meesho Order Data Processing (incomplete)
 
 This project extracts order and invoice details from Meesho PDF order labels, exports the results to tabular formats, and generates an interactive map from geocoded locations. Made this for Meesho Sellers to keep track of their orders and facilitate  repeated fraud prevention.
 
