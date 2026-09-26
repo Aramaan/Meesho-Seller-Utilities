@@ -25,3 +25,8 @@ Thumbs.db
 .vscode/
 
 map.html
+
+#credentials
+/credentials.json
+/client_secret*.json
+/token.json
